@@ -1,43 +1,49 @@
-# Scholarship Intelligence & Eligibility Change Data Platform
+#  Scholarship Intelligence & Data Platform
 
-## Project Description
+# Project Description
 
-This project collects scholarship information from official sources, tracks eligibility changes, processes data using Python and PySpark, stores data in Snowflake, and creates interactive dashboards using Power BI.
-
-## Technologies Used
+This project extracts scholarship scheme information from the official National Scholarship Portal (NSP), processes and cleans data using Python and PySpark, validates data quality, stores structured data in Snowflake, and visualizes scholarship category insights using Power BI.
+# Technologies Used
 
 - Python
 - SQL
 - PySpark
-- Azure Data Lake Storage
 - Snowflake
 - Power BI
 - GitHub
 
-## Key Features
+# Key Features
 
-- Collect scholarship information from official sources.
-- Track scholarship eligibility changes.
-- Store raw and processed data.
-- Perform data quality checks.
-- Analyze scholarship data using SQL.
-- Create interactive Power BI dashboards.
+- Extract scholarship scheme names from the official NSP website.
+- Generate structured CSV data using Python.
+- Clean and transform records using PySpark.
+- Store processed data in Parquet format.
+- Load 31 records into Snowflake.
+- Perform data quality validation.
+- Create scholarship category summaries using SQL.
+- Visualize insights using Power BI.
+# Project Workflow
 
-## Project Workflow
-
-1. Collect scholarship data from official sources.
-2. Store original data in Azure Data Lake Storage.
-3. Clean and transform data using Python and PySpark.
-4. Load transformed data into Snowflake.
-5. Analyze data using SQL.
-6. Build dashboards using Power BI.
-
-## Data Sources
+1. Extract scholarship scheme names from the official NSP website.
+2. Save the raw HTML snapshot for source traceability.
+3. Generate structured CSV data using Python.
+4. Clean and transform data using PySpark.
+5. Store processed data in Parquet format in the local Silver layer.
+6. Load processed records into Snowflake Silver schema.
+7. Create category summary in Snowflake Gold schema.
+8. Validate data quality using Python and SQL.
+9. Connect Snowflake Gold data to Power BI for visualization.
+# Data Sources
 
 - National Scholarship Portal (NSP)
-- Maharashtra MahaDBT Portal
 
-Only official government sources will be used.
 
-## Power BI Dashboard
+Currently, the project uses the official National Scholarship Portal (NSP) listing as its data source.
+
+# Power BI Dashboard
 [View / Download Power BI Dashboard](report/Scholarship_Intelligence_Dashboard.pbix)
+
+# Cloud Technology (Future Scope)
+
+- Azure Data Lake Storage Gen2
+- Planned cloud integration for future pipeline enhancement
