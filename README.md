@@ -39,6 +39,5 @@ This project collects scholarship information from official sources, tracks elig
 
 Only official government sources will be used.
 
-## Project Dashboard
-
-![Scholarship Dashboard](report/dashboard_screenshot.png)
+## Power BI Dashboard
+[View / Download Power BI Dashboard](report/Scholarship_Intelligence_Dashboard.pbix)
