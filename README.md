@@ -38,3 +38,7 @@ This project collects scholarship information from official sources, tracks elig
 - Maharashtra MahaDBT Portal
 
 Only official government sources will be used.
+
+## Project Dashboard
+
+![Scholarship Dashboard](report/dashboard_screenshot.png)
