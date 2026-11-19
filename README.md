@@ -47,3 +47,7 @@ Currently, the project uses the official National Scholarship Portal (NSP) listi
 
 - Azure Data Lake Storage Gen2
 - Planned cloud integration for future pipeline enhancement
+
+## Architecture Diagram
+
+![Project Architecture](report/scholarship_basic_architecture.png)
