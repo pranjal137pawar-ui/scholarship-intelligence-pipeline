@@ -4,14 +4,18 @@
 
 Website: https://scholarships.gov.in/
 
-Purpose: To collect scholarship scheme information.
+Purpose: To collect official scholarship scheme names.
+
+Status: Currently implemented as the project's data source.
 
 ## 2. MahaDBT Portal
 
 Website: https://mahadbt.maharashtra.gov.in/
 
-Purpose: To collect Maharashtra government scholarship scheme information.
+Purpose: Potential future source for Maharashtra government scholarship information.
+
+Status: Not yet integrated into the pipeline.
 
 ## Note
 
-All scholarship information will be verified using official government sources before processing.
+The current dataset contains scholarship scheme names extracted from the official NSP listing. Detailed eligibility information has not been verified.
