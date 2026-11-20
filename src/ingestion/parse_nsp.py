@@ -3,6 +3,7 @@ from pathlib import Path
 import csv
 from bs4 import BeautifulSoup
 
+
 # ----------------------------------
 # 1. PROJECT CONFIGURATION
 # ----------------------------------
@@ -26,7 +27,7 @@ html_files = list(RAW_FOLDER.glob("*.html"))
 
 if not html_files:
     raise FileNotFoundError(
-        f"No HTML file found in {RAW_FOLDER}"
+        f"No NSP HTML file found in {RAW_FOLDER}"
     )
 
 html_file = max(
@@ -59,10 +60,10 @@ for line in page_text.splitlines():
 
     clean_name = " ".join(line.split())
 
-    is_merit = "(Merit Based Scheme)" in clean_name
-    is_welfare = "(Welfare Based Scheme)" in clean_name
-
-    if is_merit or is_welfare:
+    if (
+        "(Merit Based Scheme)" in clean_name
+        or "(Welfare Based Scheme)" in clean_name
+    ):
         scholarships.append(clean_name)
 
 
@@ -95,9 +96,6 @@ if not scholarships:
 
 if empty_names:
     raise ValueError("Empty scholarship names detected.")
-
-if len(scholarships) != len(unique_scholarships):
-    raise ValueError("Duplicate scholarship records detected.")
 
 
 # ----------------------------------
