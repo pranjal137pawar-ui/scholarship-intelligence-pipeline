@@ -10,146 +10,177 @@ import pyarrow.parquet as pq
 
 
 # ----------------------------------
-# 1. Project Paths
+# 1. PROJECT CONFIGURATION
 # ----------------------------------
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 CSV_PATH = PROJECT_ROOT / "data" / "processed" / "nsp_scholarships.csv"
-
 OUTPUT_PATH = PROJECT_ROOT / "data" / "processed" / "scholarships_cleaned"
 
-
-# ----------------------------------
-# 2. Create Spark Session
-# ----------------------------------
-
-spark = SparkSession.builder \
-    .appName("ScholarshipIntelligencePipeline") \
-    .master("local[*]") \
-    .getOrCreate()
-
-
-# ----------------------------------
-# 3. Read Scholarship CSV
-# ----------------------------------
-
-print("\nREADING SCHOLARSHIP DATA")
-print("------------------------")
-
-df = spark.read.csv(
-    str(CSV_PATH),
-    header=True,
-    inferSchema=True
-)
-
-print("Original Records:", df.count())
-
-
-# ----------------------------------
-# 4. Data Cleaning
-# ----------------------------------
-
-print("\nDATA CLEANING")
-print("-------------")
-
-# Remove extra spaces
-df = df.withColumn(
-    "scheme_name",
-    trim(col("scheme_name"))
-)
-
-# Remove null and empty scholarship names
-df = df.filter(
-    col("scheme_name").isNotNull() &
-    (col("scheme_name") != "")
-)
-
-# Remove duplicate scholarship names
-df = df.dropDuplicates(["scheme_name"])
-
-print("Cleaned Records:", df.count())
-
-
-# ----------------------------------
-# 5. Create Scholarship Category
-# ----------------------------------
-
-print("\nCREATING SCHOLARSHIP CATEGORY")
-print("-----------------------------")
-
-df = df.withColumn(
-    "scheme_category",
-    when(
-        col("scheme_name").contains("(Merit Based Scheme)"),
-        "Merit Based"
-    ).when(
-        col("scheme_name").contains("(Welfare Based Scheme)"),
-        "Welfare Based"
-    ).otherwise("Unknown")
-)
-
-df.select(
-    "scheme_name",
-    "scheme_category"
-).show(10, truncate=False)
-
-
-# ----------------------------------
-# 6. Display Final DataFrame
-# ----------------------------------
-
-print("\nFINAL SCHOLARSHIP DATAFRAME")
-print("---------------------------")
-
-df.show(10, truncate=False)
-
-print("Total Records:", df.count())
-print("Total Columns:", len(df.columns))
-print("Column Names:", df.columns)
-
-
-# ----------------------------------
-# 7. Save Cleaned Data in Parquet
-# ----------------------------------
-
-print("\nSAVING CLEANED DATA")
-print("-------------------")
-
-# Convert Spark DataFrame into Python records
-rows = [
-    row.asDict(recursive=True)
-    for row in df.collect()
-]
-
-# Create PyArrow Table
-table = pa.Table.from_pylist(rows)
-
-# Remove old output folder if it exists
-if OUTPUT_PATH.exists():
-    shutil.rmtree(OUTPUT_PATH)
-
-# Create output folder
-OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
-
-# Save Parquet file
 PARQUET_FILE = OUTPUT_PATH / "scholarships_cleaned.parquet"
 
-pq.write_table(
-    table,
-    PARQUET_FILE
+
+# ----------------------------------
+# 2. CHECK INPUT FILE
+# ----------------------------------
+
+if not CSV_PATH.exists():
+    raise FileNotFoundError(f"Input CSV not found: {CSV_PATH}")
+
+
+# ----------------------------------
+# 3. CREATE SPARK SESSION
+# ----------------------------------
+
+spark = (
+    SparkSession.builder
+    .appName("ScholarshipIntelligencePipeline")
+    .master("local[*]")
+    .getOrCreate()
 )
 
-print("Cleaned data saved successfully!")
-print("Output Path:", PARQUET_FILE)
-print("Total Records Saved:", table.num_rows)
+try:
+
+    # ----------------------------------
+    # 4. READ SCHOLARSHIP DATA
+    # ----------------------------------
+
+    print("\nREADING SCHOLARSHIP DATA")
+    print("------------------------")
+
+    df = spark.read.csv(
+        str(CSV_PATH),
+        header=True,
+        inferSchema=False
+    )
+
+    required_columns = {
+        "scheme_name",
+        "source_name",
+        "source_url",
+        "data_status"
+    }
+
+    missing_columns = required_columns - set(df.columns)
+
+    if missing_columns:
+        raise ValueError(
+            f"Missing required columns: {missing_columns}"
+        )
+
+    original_count = df.count()
+
+    print("Original Records:", original_count)
 
 
-# ----------------------------------
-# 8. Stop Spark Session
-# ----------------------------------
+    # ----------------------------------
+    # 5. DATA CLEANING
+    # ----------------------------------
 
-spark.stop()
+    print("\nDATA CLEANING")
+    print("-------------")
 
-print("\nSPARK SESSION STOPPED")
+    df = df.withColumn(
+        "scheme_name",
+        trim(col("scheme_name"))
+    )
+
+    df = df.filter(
+        col("scheme_name").isNotNull() &
+        (col("scheme_name") != "")
+    )
+
+    df = df.dropDuplicates(["scheme_name"])
+
+    cleaned_count = df.count()
+
+    print("Cleaned Records:", cleaned_count)
+
+
+    # ----------------------------------
+    # 6. SCHOLARSHIP CATEGORY
+    # ----------------------------------
+
+    print("\nCREATING SCHOLARSHIP CATEGORY")
+    print("-----------------------------")
+
+    df = df.withColumn(
+        "scheme_category",
+        when(
+            col("scheme_name").contains("(Merit Based Scheme)"),
+            "Merit Based"
+        ).when(
+            col("scheme_name").contains("(Welfare Based Scheme)"),
+            "Welfare Based"
+        ).otherwise("Unknown")
+    )
+
+    df.select(
+        "scheme_name",
+        "scheme_category"
+    ).show(10, truncate=False)
+
+
+    # ----------------------------------
+    # 7. FINAL DATAFRAME
+    # ----------------------------------
+
+    print("\nFINAL SCHOLARSHIP DATAFRAME")
+    print("---------------------------")
+
+    df.show(10, truncate=False)
+
+    print("Total Records:", cleaned_count)
+    print("Total Columns:", len(df.columns))
+    print("Column Names:", df.columns)
+
+
+    # ----------------------------------
+    # 8. SAVE DATA AS PARQUET
+    # ----------------------------------
+
+    print("\nSAVING CLEANED DATA")
+    print("-------------------")
+
+    # Dataset currently contains only 31 records.
+    # Collecting records for PyArrow Parquet output is
+    # suitable for this small local dataset.
+
+    rows = [
+        row.asDict(recursive=True)
+        for row in df.collect()
+    ]
+
+    table = pa.Table.from_pylist(rows)
+
+    if OUTPUT_PATH.exists():
+        shutil.rmtree(OUTPUT_PATH)
+
+    OUTPUT_PATH.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    pq.write_table(
+        table,
+        PARQUET_FILE
+    )
+
+    print("Cleaned data saved successfully!")
+    print("Output Path:", PARQUET_FILE)
+    print("Total Records Saved:", table.num_rows)
+
+
+finally:
+
+    # ----------------------------------
+    # 9. STOP SPARK SESSION
+    # ----------------------------------
+
+    spark.stop()
+
+    print("\nSPARK SESSION STOPPED")
+
+
 print("PROCESS COMPLETED SUCCESSFULLY!")
