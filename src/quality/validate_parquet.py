@@ -1,8 +1,11 @@
+
 from pathlib import Path
+import sys
 import pyarrow.parquet as pq
 
+
 # ----------------------------------
-# 1. Project Paths
+# 1. PROJECT CONFIGURATION
 # ----------------------------------
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -15,38 +18,68 @@ PARQUET_PATH = (
     / "scholarships_cleaned.parquet"
 )
 
+
 # ----------------------------------
-# 2. Read Parquet File
+# 2. CHECK PARQUET FILE
 # ----------------------------------
 
 print("\nSCHOLARSHIP DATA QUALITY TEST")
 print("-----------------------------")
 
+if not PARQUET_PATH.exists():
+    raise FileNotFoundError(
+        f"Parquet file not found: {PARQUET_PATH}"
+    )
+
+
+# ----------------------------------
+# 3. READ PARQUET DATA
+# ----------------------------------
+
 table = pq.read_table(PARQUET_PATH)
 df = table.to_pandas()
 
+required_columns = {
+    "scheme_name",
+    "source_url",
+    "scheme_category"
+}
+
+missing_columns = required_columns - set(df.columns)
+
+if missing_columns:
+    raise ValueError(
+        f"Missing required columns: {missing_columns}"
+    )
+
+
 # ----------------------------------
-# 3. Data Quality Checks
+# 4. DATA QUALITY CHECKS
 # ----------------------------------
 
 total_records = len(df)
 
-empty_names = df["scheme_name"].isna().sum() + (
-    df["scheme_name"].str.strip() == ""
+empty_names = (
+    df["scheme_name"].isna()
+    | df["scheme_name"].fillna("").str.strip().eq("")
 ).sum()
 
 duplicate_names = df["scheme_name"].duplicated().sum()
 
 invalid_categories = (
-    ~df["scheme_category"].isin(["Merit Based", "Welfare Based"])
+    ~df["scheme_category"].isin(
+        ["Merit Based", "Welfare Based"]
+    )
 ).sum()
 
-empty_urls = df["source_url"].isna().sum() + (
-    df["source_url"].str.strip() == ""
+empty_urls = (
+    df["source_url"].isna()
+    | df["source_url"].fillna("").str.strip().eq("")
 ).sum()
+
 
 # ----------------------------------
-# 4. Display Results
+# 5. DISPLAY VALIDATION RESULTS
 # ----------------------------------
 
 print("Total Records:", total_records)
@@ -75,18 +108,25 @@ print(
     "| Count:", empty_urls
 )
 
+
 # ----------------------------------
-# 5. Overall Result
+# 6. OVERALL VALIDATION RESULT
 # ----------------------------------
 
-if (
-    empty_names == 0
+all_checks_passed = (
+    total_records > 0
+    and empty_names == 0
     and duplicate_names == 0
     and invalid_categories == 0
     and empty_urls == 0
-):
+)
+
+if all_checks_passed:
     print("\nOVERALL RESULT: PASSED")
+    print("All data quality checks completed successfully!")
 else:
     print("\nOVERALL RESULT: FAILED")
+    print("Please review the data quality issues.")
+    sys.exit(1)
 
 print("Validation completed!")
