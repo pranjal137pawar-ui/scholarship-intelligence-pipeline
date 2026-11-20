@@ -1,11 +1,10 @@
 
-"
 from pathlib import Path
 import csv
 from bs4 import BeautifulSoup
 
 # ----------------------------------
-# 1. Project Paths
+# 1. PROJECT CONFIGURATION
 # ----------------------------------
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -13,21 +12,21 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RAW_FOLDER = PROJECT_ROOT / "data" / "raw"
 OUTPUT_FOLDER = PROJECT_ROOT / "data" / "processed"
 
-SOURCE_URL = "https://scholarships.gov.in/All-Scholarships"
 SOURCE_NAME = "National Scholarship Portal"
+SOURCE_URL = "https://scholarships.gov.in/All-Scholarships"
 
 OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
 
 
 # ----------------------------------
-# 2. Find Latest NSP HTML File
+# 2. FIND LATEST HTML FILE
 # ----------------------------------
 
 html_files = list(RAW_FOLDER.glob("*.html"))
 
 if not html_files:
     raise FileNotFoundError(
-        f"No HTML file found in: {RAW_FOLDER}"
+        f"No HTML file found in {RAW_FOLDER}"
     )
 
 html_file = max(
@@ -35,11 +34,11 @@ html_file = max(
     key=lambda file: file.stat().st_mtime
 )
 
-print("Reading NSP HTML file:", html_file.name)
+print("Reading NSP file:", html_file.name)
 
 
 # ----------------------------------
-# 3. Extract Scholarship Information
+# 3. EXTRACT SCHOLARSHIP DATA
 # ----------------------------------
 
 html_content = html_file.read_text(
@@ -60,15 +59,15 @@ for line in page_text.splitlines():
 
     clean_name = " ".join(line.split())
 
-    if (
-        "(Merit Based Scheme)" in clean_name
-        or "(Welfare Based Scheme)" in clean_name
-    ):
+    is_merit = "(Merit Based Scheme)" in clean_name
+    is_welfare = "(Welfare Based Scheme)" in clean_name
+
+    if is_merit or is_welfare:
         scholarships.append(clean_name)
 
 
 # ----------------------------------
-# 4. Remove Duplicate Records
+# 4. REMOVE DUPLICATES
 # ----------------------------------
 
 unique_scholarships = {
@@ -83,7 +82,7 @@ scholarships = sorted(
 
 
 # ----------------------------------
-# 5. Data Quality Validation
+# 5. DATA QUALITY VALIDATION
 # ----------------------------------
 
 empty_names = [
@@ -102,7 +101,7 @@ if len(scholarships) != len(unique_scholarships):
 
 
 # ----------------------------------
-# 6. Generate Structured CSV
+# 6. GENERATE CSV FILE
 # ----------------------------------
 
 output_file = OUTPUT_FOLDER / "nsp_scholarships.csv"
@@ -132,13 +131,12 @@ with output_file.open(
 
 
 # ----------------------------------
-# 7. Final Execution Report
+# 7. FINAL EXECUTION REPORT
 # ----------------------------------
 
 print("\nSCHOLARSHIP DATA EXTRACTION REPORT")
 print("----------------------------------")
 
-print("Source:", SOURCE_NAME)
 print("Total Schemes:", len(scholarships))
 print("Duplicate Check: PASSED")
 print("Empty Name Check: PASSED")
