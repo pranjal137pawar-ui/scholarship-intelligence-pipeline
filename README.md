@@ -36,10 +36,8 @@ This project extracts scholarship scheme information from the official National 
 # Data Sources
 
 - National Scholarship Portal (NSP)
-
-
 Currently, the project uses the official National Scholarship Portal (NSP) listing as its data source.
-
+Note: The current dataset contains scholarship scheme names from the official NSP listing. Detailed eligibility information has not been verified.
 # Power BI Dashboard
 [View / Download Power BI Dashboard](report/Scholarship_Intelligence_Dashboard.pbix)
 
