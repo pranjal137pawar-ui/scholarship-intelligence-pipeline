@@ -4,3 +4,4 @@ python-dotenv
 pytest
 pyspark
 snowflake-connector-python
+pyarrow
