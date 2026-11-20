@@ -49,3 +49,7 @@ Note: The current dataset contains scholarship scheme names from the official NS
 # Architecture Diagram
 
 ![Project Architecture](report/Scholarship%20Intelligence%20Data%20Platform%20Architecture.png)
+
+# Author
+
+**Pranjal Pawar**
