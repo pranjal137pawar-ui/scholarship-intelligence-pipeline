@@ -5,3 +5,4 @@ pytest
 pyspark
 snowflake-connector-python
 pyarrow
+beautifulsoup4
